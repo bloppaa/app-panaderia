@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Modelo: Cliente
+model Cliente {
+  id            String   @id @default(cuid())
+  nombre        String
+  rut           String   @unique
+  alias         String?
+  precioPorKilo Decimal  @db.Decimal(10, 2)
+  activo        Boolean  @default(true)
+  fechaCreacion DateTime @default(now())
+
+  // Relaciones
+  valoresDefecto ValorPorDefecto[]
+  registros      Registro[]
+
+  @@map("clientes")
+}
+
+// Modelo: Valor por Defecto (kilos por día de la semana)
+model ValorPorDefecto {
+  id              String   @id @default(cuid())
+  clienteId       String
+  diaSemana       Int // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+  kilosPorDefecto Decimal  @db.Decimal(8, 3)
+  fechaCreacion   DateTime @default(now())
+
+  // Relaciones
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@unique([clienteId, diaSemana])
+  @@map("valores_por_defecto")
+}
+
+// Modelo: Registro (unificado - cliente + día + kilos)
+model Registro {
+  id                 String   @id @default(cuid())
+  clienteId          String
+  fecha              DateTime @db.Date // Fecha en que se hace el registro
+  fechaEntrega       DateTime @db.Date // Fecha en que se entrega (puede ser mañana)
+  kilosVendidos      Decimal  @db.Decimal(8, 3)
+  precioKilo         Decimal  @db.Decimal(10, 2) // Snapshot del precio en ese momento
+  total              Decimal  @db.Decimal(12, 2) // Calculado: kilos × precio
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  // Relaciones
+  cliente Cliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@unique([clienteId, fechaEntrega])
+  @@index([fechaEntrega])
+  @@index([fecha])
+  @@map("registros")
+}

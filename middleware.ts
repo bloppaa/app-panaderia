@@ -27,9 +27,7 @@ export function middleware(request: NextRequest) {
 // Configurar qué rutas protege el middleware
 export const config = {
   matcher: [
-    // Proteger rutas bajo (auth)
-    "/(auth)/:path*",
-    // Proteger rutas de API privadas
-    "/api/(?!login)/:path*",
+    // Proteger todas las rutas excepto las públicas especificadas arriba
+    "/((?!_next/static|_next/image|favicon.ico|login|api/login).*)",
   ],
 };

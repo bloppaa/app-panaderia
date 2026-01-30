@@ -1,8 +1,8 @@
-export default function HoyPage() {
+export default function ReportesPage() {
   return (
     <div className="p-6">
       <h1 className="text-4xl font-bold text-gray-900 mb-6">
-        📝 Registro de Hoy
+        📊 Reportes y Estadísticas
       </h1>
       <p className="text-xl text-gray-600">
         Esta página estará disponible próximamente...

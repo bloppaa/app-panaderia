@@ -46,7 +46,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Redirigir a la página principal
-        router.push("/(auth)/hoy");
+        router.push("/hoy");
         router.refresh();
       } else {
         setError(data.error || "PIN incorrecto");

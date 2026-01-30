@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isTokenValid } from "./lib/auth";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rutas públicas que no requieren autenticación
@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("auth_token")?.value;
 
   // Si no hay token o no es válido, redirigir a login
-  if (!token || !isTokenValid(token)) {
+  if (!token || !(await isTokenValid(token))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

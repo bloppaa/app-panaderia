@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar PIN y generar token
-    const token = validatePinAndGenerateToken(pin);
+    const token = await validatePinAndGenerateToken(pin);
 
     if (!token) {
       return NextResponse.json({ error: "PIN incorrecto" }, { status: 401 });

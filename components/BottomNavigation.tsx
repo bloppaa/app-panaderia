@@ -29,7 +29,9 @@ export const BottomNavigation = () => {
               `}
             >
               <span className="text-3xl mb-1">{item.icon}</span>
-              <span className={`text-sm font-semibold ${isActive ? "font-bold" : ""}`}>
+              <span
+                className={`text-sm font-semibold ${isActive ? "font-bold" : ""}`}
+              >
                 {item.label}
               </span>
             </Link>

@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const PIN_APP = process.env.PIN_APP || "";
@@ -11,6 +11,9 @@ if (!PIN_APP) {
   throw new Error("PIN_APP no está configurado en las variables de entorno");
 }
 
+// Convertir el secret a Uint8Array para jose
+const secretKey = new TextEncoder().encode(JWT_SECRET);
+
 export interface TokenPayload {
   authenticated: boolean;
   timestamp: number;
@@ -19,24 +22,24 @@ export interface TokenPayload {
 /**
  * Generar un JWT válido
  */
-export function signToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "7d", // Token válido por 7 días
-    algorithm: "HS256",
-  });
+export async function signToken(payload: TokenPayload): Promise<string> {
+  return await new SignJWT(payload as unknown as Record<string, unknown>)
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secretKey);
 }
 
 /**
  * Verificar y decodificar un JWT
  */
-export function verifyToken(token: string): TokenPayload | null {
+export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ["HS256"],
-    });
-    return decoded as TokenPayload;
-  } catch (error) {
-    console.error("Error al verificar el token:", error);
+    const { payload } = await jwtVerify(token, secretKey);
+    return {
+      authenticated: payload.authenticated as boolean,
+      timestamp: payload.timestamp as number,
+    };
+  } catch {
     return null;
   }
 }
@@ -44,13 +47,15 @@ export function verifyToken(token: string): TokenPayload | null {
 /**
  * Validar PIN y generar token
  */
-export function validatePinAndGenerateToken(pin: string): string | null {
+export async function validatePinAndGenerateToken(
+  pin: string,
+): Promise<string | null> {
   if (pin === PIN_APP) {
     const payload: TokenPayload = {
       authenticated: true,
       timestamp: Date.now(),
     };
-    return signToken(payload);
+    return await signToken(payload);
   }
   return null;
 }
@@ -58,7 +63,7 @@ export function validatePinAndGenerateToken(pin: string): string | null {
 /**
  * Verificar si un token es válido
  */
-export function isTokenValid(token: string): boolean {
-  const payload = verifyToken(token);
+export async function isTokenValid(token: string): Promise<boolean> {
+  const payload = await verifyToken(token);
   return payload !== null && payload.authenticated === true;
 }
